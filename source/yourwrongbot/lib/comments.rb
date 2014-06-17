@@ -3,7 +3,7 @@ require 'snoo'
 bot = Snoo::Client.new
 bot.log_in 'yourwrongbot', '42crabs'
 
-config = { bot: bot, current_sub: 'programming' }
+config = { bot: bot, current_sub: 'jokes' }
 
 
 
@@ -26,26 +26,35 @@ class RedditParser
 
   def format_posts(posts)
     posts.map do |post|
-      posts_comments = post["data"]["children"]
-      unless posts_comments.empty?
-        posts_comments.map do |comment|
-          username = comment["data"]["author"]
-          id = comment["data"]["id"]
-          body = comment["data"]["body"]
-          Comment.new(username: username, comment_id: id, body: body)
-        end
-      end
+      # puts JSON.pretty_generate post
+      format_comments_from(post)
     end.compact
+  end
+
+  def format_comments_from(post)
+    post["data"]["children"].map do |comment|
+      format_comment(comment)
+    end.compact
+  end
+
+  def format_comment(comment)
+    unless comment["data"]["body"].nil?
+      Comment.new(username: comment["data"]["author"], 
+                  comment_id: comment["data"]["id"], 
+                  body: comment["data"]["body"],
+                  link_id: comment["data"]["link_id"][3..-1])
+    end
   end
 
 end
 
 class Comment
-  attr_reader :username, :comment_id, :body
+  attr_reader :username, :comment_id, :body, :link_id
   def initialize(args)
     @username = args.fetch(:username)
     @comment_id = args.fetch(:comment_id)
     @body = args.fetch(:body)
+    @link_id = args.fetch(:link_id)
   end
 end
 
@@ -56,6 +65,7 @@ yourwrong.link_ids.each do | link_id |
   yourwrong.format_posts(yourwrong.comments_from(link_id, 5)).each do | comments |
     comments.each do |comment|
       puts "*"*70
+      puts "link id: #{comment.link_id}"
       puts "username: #{comment.username}"
       puts "comment id: #{comment.comment_id}"
       puts "body: #{comment.body}"
