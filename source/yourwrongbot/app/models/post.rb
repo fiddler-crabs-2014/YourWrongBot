@@ -3,7 +3,7 @@ require 'gingerice'
 PERSONALITIES = ["Excuse me, but I think you made a mistake there", "Ehem", "...", "FTFY"]
 
 class Post
-  attr_reader :results, :correction
+  attr_reader :results, :corrections, :count
 
   def initialize(comment)
     @comment = comment
@@ -11,10 +11,7 @@ class Post
     @results = @parser.parse(@comment)
     @corrected = results["result"]
     @count = results["corrections"].length
-  end
-
-  def corrections_count
-    { count: @count }
+    @corrections = results["corrections"]
   end
 
   def snootify
@@ -23,7 +20,9 @@ class Post
 
 end
 
-puts test = Post.new("Your not their").snootify
+test = Post.new("your insane.")
+puts test.snootify
+puts test.corrections
 #puts test.correct
 #instatiate a post(with input)
 #return boolean, correction
